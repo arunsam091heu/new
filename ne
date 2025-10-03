@@ -17,3 +17,33 @@ class LoggingCache(BaseCache):
 
 # enable once at startup
 set_llm_cache(LoggingCache(SQLiteCache(".lc.db")))
+
+
+# ✅ Works across versions (0.0.x … 0.2+)
+try:
+    # Newer LangChain (0.2+)
+    from langchain_core.globals import set_llm_cache
+    from langchain_core.caches import InMemoryCache  # always available
+    try:
+        from langchain_community.cache import SQLiteCache  # requires langchain-community
+        CacheImpl = SQLiteCache
+        CACHE_ARGS = { "database_path": ".lc.db" }
+    except Exception:
+        # Fallback if SQLiteCache not available
+        CacheImpl = InMemoryCache
+        CACHE_ARGS = {}
+except ImportError:
+    # Older LangChain (<0.2)
+    from langchain.globals import set_llm_cache
+    try:
+        from langchain.cache import SQLiteCache
+        CacheImpl = SQLiteCache
+        CACHE_ARGS = { "database_path": ".lc.db" }
+    except Exception:
+        from langchain.cache import InMemoryCache
+        CacheImpl = InMemoryCache
+        CACHE_ARGS = {}
+
+# Enable cache once at startup
+set_llm_cache(CacheImpl(**CACHE_ARGS))
+print(f"Using cache backend: {CacheImpl.__name__}")
