@@ -6,14 +6,23 @@ from langchain_community.cache import SQLiteCache  # or RedisCache, etc.
 class LoggingCache(BaseCache):
     def __init__(self, inner: BaseCache):
         self.inner = inner
+
     def lookup(self, prompt: str, llm_string: str):
         res = self.inner.lookup(prompt, llm_string)
         print(f"[LLM CACHE {'HIT' if res else 'MISS'}] {llm_string}")
         return res
+
     def update(self, prompt: str, llm_string: str, return_val):
         print(f"[LLM CACHE UPDATE] {llm_string}")
         return self.inner.update(prompt, llm_string, return_val)
 
+    def clear(self):
+        # delegate if the inner cache supports clear(); otherwise no-op
+        if hasattr(self.inner, "clear"):
+            return self.inner.clear()
+        return None
+
+# enable it
 set_llm_cache(LoggingCache(SQLiteCache(".lc.db")))
 
 
