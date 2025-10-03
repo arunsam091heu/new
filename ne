@@ -1,3 +1,23 @@
+# pip install -U langchain langchain-core langchain-community
+from langchain_core.globals import set_llm_cache
+from langchain_core.caches import BaseCache
+from langchain_community.cache import SQLiteCache  # or RedisCache, etc.
+
+class LoggingCache(BaseCache):
+    def __init__(self, inner: BaseCache):
+        self.inner = inner
+    def lookup(self, prompt: str, llm_string: str):
+        res = self.inner.lookup(prompt, llm_string)
+        print(f"[LLM CACHE {'HIT' if res else 'MISS'}] {llm_string}")
+        return res
+    def update(self, prompt: str, llm_string: str, return_val):
+        print(f"[LLM CACHE UPDATE] {llm_string}")
+        return self.inner.update(prompt, llm_string, return_val)
+
+set_llm_cache(LoggingCache(SQLiteCache(".lc.db")))
+
+
+
 
 from langchain.globals import set_llm_cache
 from langchain.cache import BaseCache, SQLiteCache  # or RedisCache, GPTCache
