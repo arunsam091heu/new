@@ -1,0 +1,23 @@
+from langchain_core.output_parsers import CommaSeparatedListOutputParser
+from langchain_openai import ChatOpenAI
+from langchain_core.prompts import PromptTemplate
+
+# 1. Set up the output parser
+output_parser = CommaSeparatedListOutputParser()
+
+# 2. Set up your prompt
+prompt = PromptTemplate(
+    template="List five fruits, separated by commas.",
+    input_variables=[],
+)
+
+# 3. Initialize the LLM
+llm = ChatOpenAI(model="gpt-3.5-turbo")  # Or use another model you're working with
+
+# 4. Combine everything and generate output
+from langchain_core.runnables import RunnableSequence
+
+chain = RunnableSequence(prompt | llm | output_parser)
+
+# 5. Run the chain
+result = chain.invoke({})
